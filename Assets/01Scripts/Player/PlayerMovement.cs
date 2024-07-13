@@ -14,13 +14,33 @@ public class PlayerMovement : NetworkBehaviour
     [SerializeField] private float _lookSpeed;
 
     private PlayerInput _playerInput;
-
     private Rigidbody _rigidbody;
+
+    private Vector2 _moveVector;
+    private Vector2 _lookVector;
 
     private void Awake()
     {
         _playerInput = GetComponent<PlayerInput>();
         _rigidbody = GetComponent<Rigidbody>();
+
+        //
+        _playerInput.Move += MoveHandle;
+        _playerInput.Look += LookHandle;
+        //
+    }
+
+    private void Update()
+    {
+        Vector3 lookVec = new Vector3(-_lookVector.y, _lookVector.x, 0);
+        lookVec *= _lookSpeed * Time.deltaTime;
+        _vCam.transform.localEulerAngles += lookVec;
+    }
+
+    private void FixedUpdate()
+    {
+        Vector3 moveVec = _moveVector * _moveSpeed * Time.deltaTime;
+        _rigidbody.velocity = moveVec;
     }
 
     public override void OnNetworkSpawn()
@@ -39,13 +59,11 @@ public class PlayerMovement : NetworkBehaviour
 
     private void MoveHandle(Vector2 dir)
     {
-        Vector3 moveVec = dir * _moveSpeed * Time.deltaTime;
-        _rigidbody.velocity = moveVec;
+        _moveVector = dir;
     }
 
     private void LookHandle(Vector2 dir)
     {
-        Vector3 rotation = new Vector3(-dir.y, dir.x, 0) * _lookSpeed;
-        _vCam.transform.eulerAngles += rotation;
+        _lookVector = dir;
     }
 }
